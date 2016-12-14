@@ -1,0 +1,65 @@
+int age = 16; // in years
+int weight = 71; // in kilograms
+String gender = "male"; // male or female
+
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(12,11,5,4,3,2);
+
+const long interval = 30000;
+
+long previousMillis = 0;
+int beats = 0;
+boolean beatCounted = false;
+
+int bpm;
+float caloriesBurned = 0;
+
+void setup() {
+  // put your setup code here, to run once:
+  lcd.begin(16,2);
+  Serial.begin(9600);
+  lcd.setCursor(0,0);
+  lcd.print("             BPM");
+  lcd.setCursor(0,1);
+  lcd.print("            Cals");
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  long currentMillis = millis();
+  
+  if((currentMillis - previousMillis) >= interval){
+    previousMillis = currentMillis;
+    
+    bpm = beats * 2;
+    caloriesBurned += calculateCaloriesBurned(gender, age, weight, bpm, 0.5);
+       
+    lcd.setCursor(0,0);
+    lcd.print(bpm);
+    lcd.setCursor(0,1); 
+    lcd.print(caloriesBurned);
+    
+    beats = 0;
+  }
+  
+  Serial.println(analogRead(A0));
+  if(analogRead(A0) >= 430){
+    if(!beatCounted){
+      beats++;
+    }
+    beatCounted = true;
+  }else{
+     beatCounted = false; 
+  }
+  //Serial.println(bpm);
+}
+
+float calculateCaloriesBurned(String gender, int age, int weight, int bpm, float duration){
+  if(gender == "male"){
+    return ((age * 0.2017) + (weight * 0.1988)+ (bpm * 0.6309) - 55.0969) * duration / 4.184;
+  }else if(gender == "female"){
+    return ((age * 0.074) + (weight * 0.1263) + (bpm * 0.4472) - 20.4022) * duration / 4.184;
+  }  
+}
